@@ -17,6 +17,7 @@ Luban Flutter — An efficient and concise Flutter image compression plugin that
 - [💻 Usage](#-usage)
   - [Compress a Single Image](#compress-a-single-image)
   - [Compress Multiple Images](#compress-multiple-images)
+- [☕ Donation](#-donation)
 - [📄 License](#-license)
 
 ## 📖 Project Description
@@ -157,6 +158,28 @@ Future<void> compressBatchImages() async {
 ### Complete Example
 
 See the [example](example) directory for a complete usage example.
+
+# ☕ Donation
+
+If this project has been helpful to you, please consider supporting my work through the following methods. Your support is the motivation for me to continue improving and maintaining this project.
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center">
+<img src="images/alipay.png" width="300" alt="Alipay QR Code" />
+</td>
+<td width="50"></td>
+<td align="center">
+<img src="images/wechat.png" width="300" alt="WeChat QR Code" />
+</td>
+</tr>
+</table>
+
+</div>
+
+Thank you for your support! 🙏
 
 ## 📄 License
 

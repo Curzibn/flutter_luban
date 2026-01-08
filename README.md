@@ -17,6 +17,7 @@ Luban Flutter —— 高效简洁的 Flutter 图片压缩插件，像素级还�
 - [💻 使用](#-使用)
   - [压缩单张图片](#压缩单张图片)
   - [批量压缩图片](#批量压缩图片)
+- [☕ 捐助](#-捐助)
 - [📄 License](#-license)
 
 ## 📖 项目描述
@@ -157,6 +158,28 @@ Future<void> compressBatchImages() async {
 ### 完整示例
 
 查看 [example](example) 目录获取完整的使用示例。
+
+# ☕ 捐助
+
+如果这个项目对您有帮助，欢迎通过以下方式支持我的工作。您的支持是我持续改进和维护这个项目的动力。
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center">
+<img src="images/alipay.png" width="300" alt="支付宝收款码" />
+</td>
+<td width="50"></td>
+<td align="center">
+<img src="images/wechat.png" width="300" alt="微信收款码" />
+</td>
+</tr>
+</table>
+
+</div>
+
+感谢您的支持！🙏
 
 ## 📄 License
 
