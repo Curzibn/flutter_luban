@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -144,7 +144,7 @@ class FileService {
       final List<String> assetFiles = await _getAssetFiles();
       
       if (assetFiles.isEmpty) {
-        print('警告: 未找到 assets 中的图片文件');
+        debugPrint('警告: 未找到 assets 中的图片文件');
         return;
       }
 
@@ -174,16 +174,16 @@ class FileService {
           await targetFile.writeAsBytes(bytes);
           copiedCount++;
         } catch (e) {
-          print('复制文件失败: $fileName, 错误: $e');
+          debugPrint('复制文件失败: $fileName, 错误: $e');
           errorCount++;
           continue;
         }
       }
       
-      print('Assets 复制完成: 复制 $copiedCount 个文件, 跳过 $skippedCount 个文件, 错误 $errorCount 个文件');
-      print('输入目录路径: ${inputDir.path}');
+      debugPrint('Assets 复制完成: 复制 $copiedCount 个文件, 跳过 $skippedCount 个文件, 错误 $errorCount 个文件');
+      debugPrint('输入目录路径: ${inputDir.path}');
     } catch (e) {
-      print('复制 assets 到存储失败: $e');
+      debugPrint('复制 assets 到存储失败: $e');
     }
   }
 
@@ -202,13 +202,13 @@ class FileService {
       try {
         await rootBundle.load('assets/test_images/$fileName');
         assetFiles.add(fileName);
-        print('成功找到 assets 文件: $fileName');
+        debugPrint('成功找到 assets 文件: $fileName');
       } catch (e) {
         continue;
       }
     }
     
-    print('总共找到 ${assetFiles.length} 个 assets 文件: $assetFiles');
+    debugPrint('总共找到 ${assetFiles.length} 个 assets 文件: $assetFiles');
     return assetFiles;
   }
 }

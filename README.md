@@ -77,7 +77,7 @@ Luban Flutter —— 高效简洁的 Flutter 图片压缩插件，像素级还�
 
 ```yaml
 dependencies:
-  luban: ^0.0.1
+  luban: ^2.0.0
 ```
 
 然后运行：

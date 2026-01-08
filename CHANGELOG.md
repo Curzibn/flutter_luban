@@ -1,3 +1,5 @@
-## 0.0.1
-
-* TODO: Describe initial release.
+## 2.0.0
+- 首次发布 Flutter 版本
+- 支持单张/批量图片压缩
+- 基于 TurboJPEG 高性能压缩引擎
+- 智能分辨率决策和自适应比特率控制

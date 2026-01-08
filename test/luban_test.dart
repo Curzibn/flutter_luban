@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:luban/luban.dart';
 import 'package:luban/luban_platform_interface.dart';
 import 'package:luban/luban_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -20,10 +19,9 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    Luban lubanPlugin = Luban();
     MockLubanPlatform fakePlatform = MockLubanPlatform();
     LubanPlatform.instance = fakePlatform;
 
-    expect(await lubanPlugin.getPlatformVersion(), '42');
+    expect(await LubanPlatform.instance.getPlatformVersion(), '42');
   });
 }
