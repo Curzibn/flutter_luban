@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:luban/luban.dart';
 import '../models/image_data.dart';
 import '../models/batch_compress_result.dart';
 import '../services/image_service.dart';
@@ -25,7 +24,6 @@ class ImageCompressionViewModel extends ChangeNotifier {
   ImageData? _originalImageData;
   ImageData? _compressedImageData;
   Uint8List? _compressedImageBytes;
-  LubanTarget? _lubanTarget;
   bool _isCompressing = false;
   bool _isBatchCompressing = false;
   int _batchProgress = 0;
@@ -36,7 +34,6 @@ class ImageCompressionViewModel extends ChangeNotifier {
   ImageData? get originalImageData => _originalImageData;
   ImageData? get compressedImageData => _compressedImageData;
   Uint8List? get compressedImageBytes => _compressedImageBytes;
-  LubanTarget? get lubanTarget => _lubanTarget;
   bool get isCompressing => _isCompressing;
   bool get isBatchCompressing => _isBatchCompressing;
   int get batchProgress => _batchProgress;
@@ -52,12 +49,9 @@ class ImageCompressionViewModel extends ChangeNotifier {
       final ImageData? imageData = await _imageService.pickImage();
       if (imageData == null) return;
 
-      final LubanTarget target = _compressionService.calculateTarget(imageData);
-
       _originalImageData = imageData;
       _compressedImageData = null;
       _compressedImageBytes = null;
-      _lubanTarget = target;
       _errorMessage = null;
       notifyListeners();
     } catch (e) {
@@ -73,39 +67,14 @@ class ImageCompressionViewModel extends ChangeNotifier {
       return;
     }
 
-    if (_lubanTarget == null) {
-      _errorMessage = '无法计算压缩参数';
-      notifyListeners();
-      return;
-    }
-
     _isCompressing = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final Uint8List compressedBytes = await _compressionService.compressImage(
-        _originalImageData!,
-        _lubanTarget!,
-      );
-
-      if (_lubanTarget!.shouldSkipCompression) {
-        final codec = await ui.instantiateImageCodec(_originalImageData!.bytes);
-        final frame = await codec.getNextFrame();
-        final ui.Image originalImage = frame.image;
-
-        _compressedImageBytes = _originalImageData!.bytes;
-        _compressedImageData = ImageData(
-          bytes: compressedBytes,
-          image: originalImage,
-          width: originalImage.width,
-          height: originalImage.height,
-        );
-        _isCompressing = false;
-        _errorMessage = '原图已经是最优大小，建议保持原图';
-        notifyListeners();
-        return;
-      }
+      final tempFile = await _fileService.createTempFile(_originalImageData!.bytes);
+      final Uint8List compressedBytes = await _compressionService.compressImage(tempFile);
+      await tempFile.delete();
 
       final codec = await ui.instantiateImageCodec(compressedBytes);
       final frame = await codec.getNextFrame();
@@ -156,26 +125,10 @@ class ImageCompressionViewModel extends ChangeNotifier {
       _batchTotal = imageFiles.length;
       notifyListeners();
 
-      final List<ImageData> imageDataList = [];
-      for (int i = 0; i < imageFiles.length; i++) {
-        final file = imageFiles[i];
-        final Uint8List imageBytes = await file.readAsBytes();
-        final codec = await ui.instantiateImageCodec(imageBytes);
-        final frame = await codec.getNextFrame();
-        final ui.Image imageData = frame.image;
+      _batchProgress = 0;
+      notifyListeners();
 
-        imageDataList.add(ImageData(
-          bytes: imageBytes,
-          image: imageData,
-          width: imageData.width,
-          height: imageData.height,
-        ));
-
-        _batchProgress = i + 1;
-        notifyListeners();
-      }
-
-      final BatchCompressResult result = await _compressionService.compressBatchFromDirectory(imageFiles, imageDataList);
+      final BatchCompressResult result = await _compressionService.compressBatchFromDirectory(imageFiles);
 
       _isBatchCompressing = false;
       _batchResult = result;
@@ -195,7 +148,6 @@ class ImageCompressionViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _compressionService.dispose();
     super.dispose();
   }
 }

@@ -101,12 +101,11 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
-                if (viewModel.lubanTarget != null && viewModel.originalImageData != null) ...[
+                if (viewModel.originalImageData != null) ...[
                   const SizedBox(height: 16),
                   CompressionInfoWidget(
                     originalWidth: viewModel.originalImageData!.width,
                     originalHeight: viewModel.originalImageData!.height,
-                    lubanTarget: viewModel.lubanTarget!,
                   ),
                 ],
                 const SizedBox(height: 24),

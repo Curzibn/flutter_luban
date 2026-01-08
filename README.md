@@ -35,8 +35,9 @@ Luban Flutter —— 高效简洁的 Flutter 图片压缩插件，像素级还�
 - 🚀 **高性能**：基于 TurboJPEG 原生库，压缩速度快
 - 🎯 **智能压缩**：自适应压缩算法，根据图片特征动态调整策略
 - 📱 **跨平台**：支持 Android 和 iOS
-- 🔧 **易于使用**：简洁的 API 设计，支持单张和批量压缩
+- 🔧 **易于使用**：简洁的 API 设计，自动读取图片尺寸，无需手动传入宽高
 - 💪 **健壮性**：完善的错误处理和边界情况处理
+- 🎨 **黑盒设计**：只暴露必要的 API，内部实现完全封装
 
 ## 📊 效果与对比
 
@@ -91,27 +92,29 @@ flutter pub get
 
 ### 压缩单张图片
 
+Luban 会自动读取图片尺寸，无需手动传入宽高参数。
+
+#### 使用文件路径
+
 ```dart
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:luban/luban.dart';
 
 Future<void> compressImage() async {
-  final ByteData imageData = await rootBundle.load('assets/image.jpg');
-  final Uint8List imageBytes = imageData.buffer.asUint8List();
+  final file = File('/path/to/image.jpg');
+  final compressedBytes = await Luban.compress(file);
   
-  final codec = await ui.instantiateImageCodec(imageBytes);
-  final frame = await codec.getNextFrame();
-  final ui.Image image = frame.image;
-  
-  final compressedBytes = await Luban.compress(
-    imageBytes,
-    image.width,
-    image.height,
-  );
-  
-  image.dispose();
+  print('压缩完成，大小: ${compressedBytes.length / 1024} KB');
+}
+```
+
+#### 使用字符串路径
+
+```dart
+import 'package:luban/luban.dart';
+
+Future<void> compressImage() async {
+  final compressedBytes = await Luban.compressPath('/path/to/image.jpg');
   
   print('压缩完成，大小: ${compressedBytes.length / 1024} KB');
 }
@@ -119,37 +122,41 @@ Future<void> compressImage() async {
 
 ### 批量压缩图片
 
+#### 使用文件列表
+
 ```dart
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:luban/luban.dart';
 
 Future<void> compressBatchImages() async {
-  final List<Uint8List> imageBytesList = [];
-  final List<int> widths = [];
-  final List<int> heights = [];
+  final files = [
+    File('/path/to/image1.jpg'),
+    File('/path/to/image2.jpg'),
+    File('/path/to/image3.jpg'),
+  ];
   
-  for (final imagePath in imagePaths) {
-    final ByteData imageData = await rootBundle.load(imagePath);
-    final Uint8List imageBytes = imageData.buffer.asUint8List();
-    
-    final codec = await ui.instantiateImageCodec(imageBytes);
-    final frame = await codec.getNextFrame();
-    final ui.Image image = frame.image;
-    
-    imageBytesList.add(imageBytes);
-    widths.add(image.width);
-    heights.add(image.height);
-    
-    image.dispose();
+  final compressedResults = await Luban.compressBatch(files);
+  
+  print('批量压缩完成，共 ${compressedResults.length} 张图片');
+  for (int i = 0; i < compressedResults.length; i++) {
+    print('图片 ${i + 1} 压缩后大小: ${compressedResults[i].length / 1024} KB');
   }
+}
+```
+
+#### 使用路径列表
+
+```dart
+import 'package:luban/luban.dart';
+
+Future<void> compressBatchImages() async {
+  final paths = [
+    '/path/to/image1.jpg',
+    '/path/to/image2.jpg',
+    '/path/to/image3.jpg',
+  ];
   
-  final compressedResults = await Luban.compressBatch(
-    imageBytesList,
-    widths,
-    heights,
-  );
+  final compressedResults = await Luban.compressBatchPaths(paths);
   
   print('批量压缩完成，共 ${compressedResults.length} 张图片');
 }

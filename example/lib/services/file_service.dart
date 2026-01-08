@@ -211,5 +211,13 @@ class FileService {
     debugPrint('总共找到 ${assetFiles.length} 个 assets 文件: $assetFiles');
     return assetFiles;
   }
+
+  Future<File> createTempFile(Uint8List bytes) async {
+    final tempDir = await getTemporaryDirectory();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final tempFile = File('${tempDir.path}/temp_$timestamp.jpg');
+    await tempFile.writeAsBytes(bytes);
+    return tempFile;
+  }
 }
 

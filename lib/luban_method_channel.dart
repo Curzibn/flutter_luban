@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'luban_platform_interface.dart';
 
-/// An implementation of [LubanPlatform] that uses method channels.
 class MethodChannelLuban extends LubanPlatform {
-  /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('luban');
 

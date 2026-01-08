@@ -35,8 +35,9 @@ This library is the **Flutter version** of `Luban`, using **TurboJPEG** for high
 - 🚀 **High Performance**: Based on TurboJPEG native library, fast compression speed
 - 🎯 **Smart Compression**: Adaptive compression algorithm that dynamically adjusts strategy based on image characteristics
 - 📱 **Cross-Platform**: Supports Android and iOS
-- 🔧 **Easy to Use**: Simple API design, supports single and batch compression
+- 🔧 **Easy to Use**: Simple API design, automatically reads image dimensions, no need to manually pass width and height
 - 💪 **Robust**: Comprehensive error handling and edge case handling
+- 🎨 **Black Box Design**: Only exposes necessary APIs, internal implementation is fully encapsulated
 
 ## 📊 Effects & Comparison
 
@@ -91,27 +92,29 @@ flutter pub get
 
 ### Compress a Single Image
 
+Luban automatically reads image dimensions, no need to manually pass width and height parameters.
+
+#### Using File Path
+
 ```dart
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:luban/luban.dart';
 
 Future<void> compressImage() async {
-  final ByteData imageData = await rootBundle.load('assets/image.jpg');
-  final Uint8List imageBytes = imageData.buffer.asUint8List();
+  final file = File('/path/to/image.jpg');
+  final compressedBytes = await Luban.compress(file);
   
-  final codec = await ui.instantiateImageCodec(imageBytes);
-  final frame = await codec.getNextFrame();
-  final ui.Image image = frame.image;
-  
-  final compressedBytes = await Luban.compress(
-    imageBytes,
-    image.width,
-    image.height,
-  );
-  
-  image.dispose();
+  print('Compression completed, size: ${compressedBytes.length / 1024} KB');
+}
+```
+
+#### Using String Path
+
+```dart
+import 'package:luban/luban.dart';
+
+Future<void> compressImage() async {
+  final compressedBytes = await Luban.compressPath('/path/to/image.jpg');
   
   print('Compression completed, size: ${compressedBytes.length / 1024} KB');
 }
@@ -119,37 +122,41 @@ Future<void> compressImage() async {
 
 ### Compress Multiple Images
 
+#### Using File List
+
 ```dart
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:luban/luban.dart';
 
 Future<void> compressBatchImages() async {
-  final List<Uint8List> imageBytesList = [];
-  final List<int> widths = [];
-  final List<int> heights = [];
+  final files = [
+    File('/path/to/image1.jpg'),
+    File('/path/to/image2.jpg'),
+    File('/path/to/image3.jpg'),
+  ];
   
-  for (final imagePath in imagePaths) {
-    final ByteData imageData = await rootBundle.load(imagePath);
-    final Uint8List imageBytes = imageData.buffer.asUint8List();
-    
-    final codec = await ui.instantiateImageCodec(imageBytes);
-    final frame = await codec.getNextFrame();
-    final ui.Image image = frame.image;
-    
-    imageBytesList.add(imageBytes);
-    widths.add(image.width);
-    heights.add(image.height);
-    
-    image.dispose();
+  final compressedResults = await Luban.compressBatch(files);
+  
+  print('Batch compression completed, ${compressedResults.length} images');
+  for (int i = 0; i < compressedResults.length; i++) {
+    print('Image ${i + 1} compressed size: ${compressedResults[i].length / 1024} KB');
   }
+}
+```
+
+#### Using Path List
+
+```dart
+import 'package:luban/luban.dart';
+
+Future<void> compressBatchImages() async {
+  final paths = [
+    '/path/to/image1.jpg',
+    '/path/to/image2.jpg',
+    '/path/to/image3.jpg',
+  ];
   
-  final compressedResults = await Luban.compressBatch(
-    imageBytesList,
-    widths,
-    heights,
-  );
+  final compressedResults = await Luban.compressBatchPaths(paths);
   
   print('Batch compression completed, ${compressedResults.length} images');
 }

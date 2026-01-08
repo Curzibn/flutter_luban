@@ -6,12 +6,6 @@ import 'native_library.dart';
 import 'generated_bindings.dart';
 import 'tj_constants.dart';
 
-/// TurboJPEG 原生库封装
-///
-/// 提供高性能的 JPEG 编码和解码功能。
-/// 内部使用 Dart FFI 调用 TurboJPEG C 库。
-///
-/// 实例会自动管理原生资源，也可手动调用 [dispose] 释放。
 class TurboJpeg {
   late LibJpegTurboBindings _bindings;
   late ffi.Pointer<ffi.Void> _handle;
@@ -25,9 +19,6 @@ class TurboJpeg {
 
   bool _isInitialized = false;
 
-  /// 创建 TurboJPEG 实例
-  ///
-  /// 自动初始化压缩器句柄
   TurboJpeg() {
     _bindings = LibJpegTurboBindings(turboJpegLib);
     _init();
@@ -42,9 +33,6 @@ class TurboJpeg {
     _finalizer.attach(this, _handle);
   }
 
-  /// 释放原生资源
-  ///
-  /// 调用后实例将不可用，后续操作会自动重新初始化
   void dispose() {
     if (_isInitialized) {
       _finalizer.detach(this);
@@ -53,20 +41,6 @@ class TurboJpeg {
     }
   }
 
-  /// 压缩 RGBA 图像数据为 JPEG
-  ///
-  /// [sourceData] RGBA 格式的原始像素数据，长度必须等于 width * height * 4
-  /// [width] 图像宽度（像素）
-  /// [height] 图像高度（像素）
-  /// [quality] JPEG 压缩质量，范围 1-100，默认 80
-  /// [pixelFormat] 输入像素格式，默认 [TJConstants.TJPF_RGBA]
-  /// [subsample] 色度子采样模式，默认 [TJConstants.TJSAMP_444]
-  /// [flags] 压缩标志，默认 [TJConstants.TJFLAG_FASTDCT]
-  ///
-  /// 返回压缩后的 JPEG 字节数据
-  ///
-  /// 如果 sourceData 长度与预期不符，抛出 [ArgumentError]
-  /// 如果压缩失败，抛出 [Exception] 包含错误信息
   Uint8List compress(
     Uint8List sourceData,
     int width,
@@ -131,17 +105,6 @@ class TurboJpeg {
     });
   }
 
-  /// 解压缩 JPEG 数据为 RGBA 格式
-  ///
-  /// [jpegData] JPEG 图像字节数据
-  /// [width] 目标输出宽度（像素）
-  /// [height] 目标输出高度（像素）
-  /// [pixelFormat] 输出像素格式，默认 [TJConstants.TJPF_RGBA]
-  /// [flags] 解压标志
-  ///
-  /// 返回 RGBA 格式的像素数据，长度为 width * height * 4
-  ///
-  /// 如果解压失败，抛出 [Exception] 包含错误信息
   Uint8List decompress(
     Uint8List jpegData,
     int width,
