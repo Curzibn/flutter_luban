@@ -1,6 +1,6 @@
 name: luban
 description: "Luban 2 — An efficient and concise Android image compression library that pixel-perfectly replicates the compression strategy of WeChat Moments."
-version: 2.0.0
+version: 2.0.1
 homepage: https://github.com/Curzibn/flutter_luban
 
 repository: https://github.com/Curzibn/flutter_luban

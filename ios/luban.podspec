@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'luban'
-  s.version          = '2.0.0'
+  s.version          = '2.0.1'
   s.summary          = 'Luban 2 — An efficient and concise Flutter image compression library that pixel-perfectly replicates the compression strategy of WeChat Moments.'
   s.description      = <<-DESC
 Luban Flutter is an efficient and concise Flutter image compression plugin that uses TurboJPEG for high-performance image compression. It provides a simple API and compression effects close to WeChat Moments.

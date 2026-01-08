@@ -70,7 +70,7 @@ Add the dependency to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  luban: ^2.0.0
+  luban: ^2.0.1
 ```
 
 Then run:

@@ -1,5 +1,7 @@
 reference_code/
 images/
+build/
+example/assets/test_images/
 lib/luban_method_channel.dart
 lib/luban_platform_interface.dart
 lib/src/luban_optimizer.dart
