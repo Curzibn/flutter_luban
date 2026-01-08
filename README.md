@@ -30,15 +30,6 @@ Luban Flutter —— 高效简洁的 Flutter 图片压缩插件，像素级还�
 
 本库是 `Luban` 的 **Flutter 版本**，使用 **TurboJPEG** 进行高性能图片压缩，提供简洁易用的 API 和接近微信朋友圈的压缩效果。
 
-## ✨ 特性
-
-- 🚀 **高性能**：基于 TurboJPEG 原生库，压缩速度快
-- 🎯 **智能压缩**：自适应压缩算法，根据图片特征动态调整策略
-- 📱 **跨平台**：支持 Android 和 iOS
-- 🔧 **易于使用**：简洁的 API 设计，自动读取图片尺寸，无需手动传入宽高
-- 💪 **健壮性**：完善的错误处理和边界情况处理
-- 🎨 **黑盒设计**：只暴露必要的 API，内部实现完全封装
-
 ## 📊 效果与对比
 
 | 图片类型 | 原图（分辨率, 大小） | Luban（分辨率, 大小） | Wechat（分辨率, 大小） |
@@ -92,9 +83,7 @@ flutter pub get
 
 ### 压缩单张图片
 
-Luban 会自动读取图片尺寸，无需手动传入宽高参数。
-
-#### 使用文件路径
+#### 使用 File 对象
 
 ```dart
 import 'dart:io';
@@ -102,9 +91,18 @@ import 'package:luban/luban.dart';
 
 Future<void> compressImage() async {
   final file = File('/path/to/image.jpg');
-  final compressedBytes = await Luban.compress(file);
+  final result = await Luban.compress(file);
   
-  print('压缩完成，大小: ${compressedBytes.length / 1024} KB');
+  if (result.isSuccess) {
+    final compressionResult = result.value;
+    print('压缩完成');
+    print('原图大小: ${compressionResult.originalSizeKb} KB');
+    print('压缩后大小: ${compressionResult.compressedSizeKb} KB');
+    print('压缩率: ${(compressionResult.compressionRatio * 100).toStringAsFixed(1)}%');
+    print('输出文件: ${compressionResult.file.path}');
+  } else {
+    print('压缩失败: ${result.error}');
+  }
 }
 ```
 
@@ -114,13 +112,59 @@ Future<void> compressImage() async {
 import 'package:luban/luban.dart';
 
 Future<void> compressImage() async {
-  final compressedBytes = await Luban.compressPath('/path/to/image.jpg');
+  final result = await Luban.compressPath('/path/to/image.jpg');
   
-  print('压缩完成，大小: ${compressedBytes.length / 1024} KB');
+  result.fold(
+    (error) => print('压缩失败: $error'),
+    (compressionResult) {
+      print('压缩完成，大小: ${compressionResult.compressedSizeKb} KB');
+      print('输出文件: ${compressionResult.file.path}');
+    },
+  );
+}
+```
+
+#### 指定输出文件
+
+```dart
+import 'dart:io';
+import 'package:luban/luban.dart';
+
+Future<void> compressImage() async {
+  final inputFile = File('/path/to/image.jpg');
+  final outputFile = File('/path/to/output/compressed.jpg');
+  
+  final result = await Luban.compressToFile(inputFile, outputFile);
+  
+  if (result.isSuccess) {
+    final compressionResult = result.value;
+    print('压缩完成，文件已保存到: ${compressionResult.file.path}');
+  }
+}
+```
+
+#### 指定输出目录
+
+```dart
+import 'dart:io';
+import 'package:luban/luban.dart';
+
+Future<void> compressImage() async {
+  final inputFile = File('/path/to/image.jpg');
+  final outputDir = Directory('/path/to/output');
+  
+  final result = await Luban.compress(inputFile, outputDir: outputDir);
+  
+  if (result.isSuccess) {
+    final compressionResult = result.value;
+    print('压缩完成，文件已保存到: ${compressionResult.file.path}');
+  }
 }
 ```
 
 ### 批量压缩图片
+
+批量压缩返回 `Result<BatchCompressionResult>`，需要先检查成功或失败状态，然后访问 `BatchCompressionResult` 获取所有图片的压缩结果。
 
 #### 使用文件列表
 
@@ -135,11 +179,25 @@ Future<void> compressBatchImages() async {
     File('/path/to/image3.jpg'),
   ];
   
-  final compressedResults = await Luban.compressBatch(files);
+  final result = await Luban.compressBatch(files);
   
-  print('批量压缩完成，共 ${compressedResults.length} 张图片');
-  for (int i = 0; i < compressedResults.length; i++) {
-    print('图片 ${i + 1} 压缩后大小: ${compressedResults[i].length / 1024} KB');
+  if (result.isSuccess) {
+    final batchResult = result.value;
+    print('批量压缩完成');
+    print('总数: ${batchResult.total}');
+    print('成功: ${batchResult.successCount}');
+    print('失败: ${batchResult.failureCount}');
+    
+    for (final item in batchResult.items) {
+      if (item.isSuccess) {
+        final compressionResult = item.result.value;
+        print('${item.originalPath}: ${compressionResult.compressedSizeKb} KB');
+      } else {
+        print('${item.originalPath}: 压缩失败 - ${item.result.error}');
+      }
+    }
+  } else {
+    print('批量压缩失败: ${result.error}');
   }
 }
 ```
@@ -156,9 +214,46 @@ Future<void> compressBatchImages() async {
     '/path/to/image3.jpg',
   ];
   
-  final compressedResults = await Luban.compressBatchPaths(paths);
+  final result = await Luban.compressBatchPaths(paths);
   
-  print('批量压缩完成，共 ${compressedResults.length} 张图片');
+  result.fold(
+    (error) => print('批量压缩失败: $error'),
+    (batchResult) {
+      print('批量压缩完成，成功 ${batchResult.successCount}/${batchResult.total} 张');
+      
+      for (final compressionResult in batchResult.successfulResults) {
+        print('${compressionResult.file.path}: ${compressionResult.compressedSizeKb} KB');
+      }
+    },
+  );
+}
+```
+
+#### 批量压缩并指定输出目录
+
+```dart
+import 'dart:io';
+import 'package:luban/luban.dart';
+
+Future<void> compressBatchImages() async {
+  final files = [
+    File('/path/to/image1.jpg'),
+    File('/path/to/image2.jpg'),
+  ];
+  final outputDir = Directory('/path/to/output');
+  
+  final result = await Luban.compressBatch(files, outputDir: outputDir);
+  
+  if (result.isSuccess) {
+    final batchResult = result.value;
+    print('批量压缩完成，成功 ${batchResult.successCount} 张');
+    
+    for (final compressionResult in batchResult.successfulResults) {
+      print('压缩文件: ${compressionResult.file.path}');
+    }
+  } else {
+    print('批量压缩失败: ${result.error}');
+  }
 }
 ```
 

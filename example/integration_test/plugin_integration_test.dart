@@ -15,12 +15,16 @@ void main() {
     final testFile = File('${tempDir.path}/test_image.png');
     await testFile.writeAsBytes(testImageBytes);
     
-    final compressedBytes = await Luban.compress(testFile);
+    final result = await Luban.compress(testFile);
     
-    expect(compressedBytes.isNotEmpty, true);
-    expect(compressedBytes.length, lessThanOrEqualTo(testImageBytes.length));
+    expect(result.isSuccess, true);
+    final compressionResult = result.value;
+    expect(compressionResult.compressedSizeBytes, greaterThan(0));
+    expect(compressionResult.compressedSizeBytes, lessThanOrEqualTo(testImageBytes.length));
+    expect(await compressionResult.file.exists(), true);
     
     await testFile.delete();
+    await compressionResult.file.delete();
   });
 
   testWidgets('Luban batch compression test', (WidgetTester tester) async {
@@ -32,11 +36,21 @@ void main() {
     await testFile1.writeAsBytes(testImageBytes1);
     await testFile2.writeAsBytes(testImageBytes2);
     
-    final compressedResults = await Luban.compressBatch([testFile1, testFile2]);
+    final batchResult = await Luban.compressBatch([testFile1, testFile2]);
     
-    expect(compressedResults.length, equals(2));
-    expect(compressedResults[0].isNotEmpty, true);
-    expect(compressedResults[1].isNotEmpty, true);
+    expect(batchResult.isSuccess, true);
+    final batchCompressionResult = batchResult.value;
+    expect(batchCompressionResult.total, equals(2));
+    expect(batchCompressionResult.successCount, equals(2));
+    expect(batchCompressionResult.failureCount, equals(0));
+    expect(batchCompressionResult.successfulResults.length, equals(2));
+    
+    for (final item in batchCompressionResult.items) {
+      expect(item.isSuccess, true);
+      final compressionResult = item.result.value;
+      expect(await compressionResult.file.exists(), true);
+      await compressionResult.file.delete();
+    }
     
     await testFile1.delete();
     await testFile2.delete();

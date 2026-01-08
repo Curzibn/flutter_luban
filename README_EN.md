@@ -30,15 +30,6 @@ Since this behavior is inferred from observation, the results may not match WeCh
 
 This library is the **Flutter version** of `Luban`, using **TurboJPEG** for high-performance image compression, providing a simple API and compression results close to WeChat Moments.
 
-## ✨ Features
-
-- 🚀 **High Performance**: Based on TurboJPEG native library, fast compression speed
-- 🎯 **Smart Compression**: Adaptive compression algorithm that dynamically adjusts strategy based on image characteristics
-- 📱 **Cross-Platform**: Supports Android and iOS
-- 🔧 **Easy to Use**: Simple API design, automatically reads image dimensions, no need to manually pass width and height
-- 💪 **Robust**: Comprehensive error handling and edge case handling
-- 🎨 **Black Box Design**: Only exposes necessary APIs, internal implementation is fully encapsulated
-
 ## 📊 Effects & Comparison
 
 | Image Type | Original | Luban | WeChat |
@@ -92,9 +83,7 @@ flutter pub get
 
 ### Compress a Single Image
 
-Luban automatically reads image dimensions, no need to manually pass width and height parameters.
-
-#### Using File Path
+#### Using File Object
 
 ```dart
 import 'dart:io';
@@ -102,9 +91,18 @@ import 'package:luban/luban.dart';
 
 Future<void> compressImage() async {
   final file = File('/path/to/image.jpg');
-  final compressedBytes = await Luban.compress(file);
+  final result = await Luban.compress(file);
   
-  print('Compression completed, size: ${compressedBytes.length / 1024} KB');
+  if (result.isSuccess) {
+    final compressionResult = result.value;
+    print('Compression completed');
+    print('Original size: ${compressionResult.originalSizeKb} KB');
+    print('Compressed size: ${compressionResult.compressedSizeKb} KB');
+    print('Compression ratio: ${(compressionResult.compressionRatio * 100).toStringAsFixed(1)}%');
+    print('Output file: ${compressionResult.file.path}');
+  } else {
+    print('Compression failed: ${result.error}');
+  }
 }
 ```
 
@@ -114,13 +112,59 @@ Future<void> compressImage() async {
 import 'package:luban/luban.dart';
 
 Future<void> compressImage() async {
-  final compressedBytes = await Luban.compressPath('/path/to/image.jpg');
+  final result = await Luban.compressPath('/path/to/image.jpg');
   
-  print('Compression completed, size: ${compressedBytes.length / 1024} KB');
+  result.fold(
+    (error) => print('Compression failed: $error'),
+    (compressionResult) {
+      print('Compression completed, size: ${compressionResult.compressedSizeKb} KB');
+      print('Output file: ${compressionResult.file.path}');
+    },
+  );
+}
+```
+
+#### Specify Output File
+
+```dart
+import 'dart:io';
+import 'package:luban/luban.dart';
+
+Future<void> compressImage() async {
+  final inputFile = File('/path/to/image.jpg');
+  final outputFile = File('/path/to/output/compressed.jpg');
+  
+  final result = await Luban.compressToFile(inputFile, outputFile);
+  
+  if (result.isSuccess) {
+    final compressionResult = result.value;
+    print('Compression completed, file saved to: ${compressionResult.file.path}');
+  }
+}
+```
+
+#### Specify Output Directory
+
+```dart
+import 'dart:io';
+import 'package:luban/luban.dart';
+
+Future<void> compressImage() async {
+  final inputFile = File('/path/to/image.jpg');
+  final outputDir = Directory('/path/to/output');
+  
+  final result = await Luban.compress(inputFile, outputDir: outputDir);
+  
+  if (result.isSuccess) {
+    final compressionResult = result.value;
+    print('Compression completed, file saved to: ${compressionResult.file.path}');
+  }
 }
 ```
 
 ### Compress Multiple Images
+
+Batch compression returns `Result<BatchCompressionResult>`. You need to check for success or failure status first, then access `BatchCompressionResult` to get compression results for all images.
 
 #### Using File List
 
@@ -135,11 +179,25 @@ Future<void> compressBatchImages() async {
     File('/path/to/image3.jpg'),
   ];
   
-  final compressedResults = await Luban.compressBatch(files);
+  final result = await Luban.compressBatch(files);
   
-  print('Batch compression completed, ${compressedResults.length} images');
-  for (int i = 0; i < compressedResults.length; i++) {
-    print('Image ${i + 1} compressed size: ${compressedResults[i].length / 1024} KB');
+  if (result.isSuccess) {
+    final batchResult = result.value;
+    print('Batch compression completed');
+    print('Total: ${batchResult.total}');
+    print('Success: ${batchResult.successCount}');
+    print('Failed: ${batchResult.failureCount}');
+    
+    for (final item in batchResult.items) {
+      if (item.isSuccess) {
+        final compressionResult = item.result.value;
+        print('${item.originalPath}: ${compressionResult.compressedSizeKb} KB');
+      } else {
+        print('${item.originalPath}: Compression failed - ${item.result.error}');
+      }
+    }
+  } else {
+    print('Batch compression failed: ${result.error}');
   }
 }
 ```
@@ -156,9 +214,46 @@ Future<void> compressBatchImages() async {
     '/path/to/image3.jpg',
   ];
   
-  final compressedResults = await Luban.compressBatchPaths(paths);
+  final result = await Luban.compressBatchPaths(paths);
   
-  print('Batch compression completed, ${compressedResults.length} images');
+  result.fold(
+    (error) => print('Batch compression failed: $error'),
+    (batchResult) {
+      print('Batch compression completed, ${batchResult.successCount}/${batchResult.total} successful');
+      
+      for (final compressionResult in batchResult.successfulResults) {
+        print('${compressionResult.file.path}: ${compressionResult.compressedSizeKb} KB');
+      }
+    },
+  );
+}
+```
+
+#### Batch Compression with Output Directory
+
+```dart
+import 'dart:io';
+import 'package:luban/luban.dart';
+
+Future<void> compressBatchImages() async {
+  final files = [
+    File('/path/to/image1.jpg'),
+    File('/path/to/image2.jpg'),
+  ];
+  final outputDir = Directory('/path/to/output');
+  
+  final result = await Luban.compressBatch(files, outputDir: outputDir);
+  
+  if (result.isSuccess) {
+    final batchResult = result.value;
+    print('Batch compression completed, ${batchResult.successCount} successful');
+    
+    for (final compressionResult in batchResult.successfulResults) {
+      print('Compressed file: ${compressionResult.file.path}');
+    }
+  } else {
+    print('Batch compression failed: ${result.error}');
+  }
 }
 ```
 

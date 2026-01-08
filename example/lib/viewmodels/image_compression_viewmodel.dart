@@ -145,10 +145,5 @@ class ImageCompressionViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 

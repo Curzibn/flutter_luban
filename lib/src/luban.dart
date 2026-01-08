@@ -1,10 +1,14 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as path;
 import 'algorithm/compression_calculator.dart';
-import 'compression/compressor.dart';
 import 'compression/jpeg_compressor.dart';
+import 'compression/compression_exception.dart';
+import 'compression/compression_result.dart';
+import 'io/image_loader.dart';
+import 'result.dart';
+import 'batch_compression_result.dart';
 
 Future<Uint8List> _compressInIsolate(Map<String, dynamic> params) async {
   final rgbaData = params['rgbaData'] as Uint8List;
@@ -22,59 +26,86 @@ Future<Uint8List> _compressInIsolate(Map<String, dynamic> params) async {
       targetSizeKb: targetSizeKb,
       fixedQuality: fixedQuality,
     );
+  } catch (e) {
+    throw CompressionFailedException(
+      '压缩过程中发生错误 (Error during compression)',
+      e is Exception ? e : Exception(e.toString()),
+    );
   } finally {
     compressor.dispose();
   }
 }
 
 class Luban {
+  final ImageLoader _imageLoader;
   final CompressionCalculator _calculator;
 
   Luban({
-    Compressor? compressor,
+    ImageLoader? imageLoader,
     CompressionCalculator? calculator,
-  })  : _calculator = calculator ?? CompressionCalculator();
+  })  : _imageLoader = imageLoader ?? FlutterImageLoader(),
+        _calculator = calculator ?? CompressionCalculator();
 
   static final Luban _defaultInstance = Luban();
 
-  static Future<Uint8List> compress(File file) async {
-    return _defaultInstance.compressFromFile(file);
+  static Future<Result<CompressionResult>> compress(
+    File input, {
+    Directory? outputDir,
+    File? outputFile,
+  }) async {
+    if (outputDir != null && outputFile != null) {
+      return Result.failure(InvalidArgumentException('outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)'));
+    }
+    return _defaultInstance.compressFile(input, outputDir: outputDir, outputFile: outputFile);
   }
 
-  static Future<Uint8List> compressPath(String path) async {
-    return compress(File(path));
+  static Future<Result<CompressionResult>> compressPath(
+    String inputPath, {
+    Directory? outputDir,
+    File? outputFile,
+  }) async {
+    if (outputDir != null && outputFile != null) {
+      return Result.failure(InvalidArgumentException('outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)'));
+    }
+    return compress(File(inputPath), outputDir: outputDir, outputFile: outputFile);
   }
 
-  static Future<List<Uint8List>> compressBatch(List<File> files) async {
-    return _defaultInstance.compressBatchFromFiles(files);
+  static Future<Result<CompressionResult>> compressToFile({
+    required File input,
+    required File output,
+  }) async {
+    return _defaultInstance.compressFile(input, outputFile: output);
   }
 
-  static Future<List<Uint8List>> compressBatchPaths(List<String> paths) async {
-    return compressBatch(paths.map((path) => File(path)).toList());
+  static Future<Result<BatchCompressionResult>> compressBatch(
+    List<File> inputs, {
+    Directory? outputDir,
+  }) async {
+    return _defaultInstance.compressBatchFiles(inputs, outputDir: outputDir);
   }
 
-  Future<Uint8List> compressInternal(
+  static Future<Result<BatchCompressionResult>> compressBatchPaths(
+    List<String> inputPaths, {
+    Directory? outputDir,
+  }) async {
+    return compressBatch(
+      inputPaths.map((p) => File(p)).toList(),
+      outputDir: outputDir,
+    );
+  }
+
+  Future<Uint8List> _compressInternal(
     Uint8List imageBytes,
     int width,
     int height,
   ) async {
-    final codec = await ui.instantiateImageCodec(imageBytes);
-    final frame = await codec.getNextFrame();
-    final ui.Image image = frame.image;
-
     final target = _calculator.calculateTarget(width, height);
 
-    ui.Image imageToCompress = image;
-    int compressWidth = width;
-    int compressHeight = height;
-
-    if (target.width != width || target.height != height) {
-      imageToCompress = await _resizeImage(image, target.width, target.height);
-      compressWidth = target.width;
-      compressHeight = target.height;
-    }
-
-    final Uint8List rgbaData = await _imageToRgba(imageToCompress);
+    final imageData = await _imageLoader.loadFromBytes(
+      imageBytes,
+      target.width,
+      target.height,
+    );
 
     final int? targetSizeKb = target.targetSizeKb;
     final int? fixedQuality = target.isLongImage ? null : 60;
@@ -82,79 +113,148 @@ class Luban {
     final Uint8List compressedBytes = await compute(
       _compressInIsolate,
       {
-        'rgbaData': rgbaData,
-        'width': compressWidth,
-        'height': compressHeight,
+        'rgbaData': imageData.rgbaData,
+        'width': imageData.width,
+        'height': imageData.height,
         'targetSizeKb': targetSizeKb,
         'fixedQuality': fixedQuality,
       },
     );
 
-    if (imageToCompress != image) {
-      imageToCompress.dispose();
-    }
-
     return compressedBytes;
   }
 
-  Future<Uint8List> compressFromFile(File file) async {
-    if (!await file.exists()) {
-      throw ArgumentError('文件不存在: ${file.path}');
+  Future<Result<CompressionResult>> compressFile(
+    File input, {
+    Directory? outputDir,
+    File? outputFile,
+  }) async {
+    if (outputDir != null && outputFile != null) {
+      return Result.failure(InvalidArgumentException('outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)'));
     }
-
-    final Uint8List imageBytes = await file.readAsBytes();
-    final codec = await ui.instantiateImageCodec(imageBytes);
-    final frame = await codec.getNextFrame();
-    final ui.Image image = frame.image;
-
     try {
-      return await compressInternal(imageBytes, image.width, image.height);
-    } finally {
-      image.dispose();
+      if (!await input.exists()) {
+        return Result.failure(FileNotFoundException(input.path));
+      }
+
+      final Uint8List imageBytes = await input.readAsBytes();
+      final codec = await ui.instantiateImageCodec(imageBytes);
+      final frame = await codec.getNextFrame();
+      final int originalWidth = frame.image.width;
+      final int originalHeight = frame.image.height;
+      frame.image.dispose();
+
+      final Uint8List compressedBytes = await _compressInternal(
+        imageBytes,
+        originalWidth,
+        originalHeight,
+      );
+
+      final int originalSizeBytes = imageBytes.length;
+      final int compressedSizeBytes = compressedBytes.length;
+
+      File finalOutputFile;
+      bool isOriginalCopied = false;
+
+      if (outputFile != null) {
+        finalOutputFile = outputFile;
+      } else if (outputDir != null) {
+        finalOutputFile = _generateOutputFile(input, outputDir);
+      } else {
+        final tempDir = await Directory.systemTemp.createTemp('luban_');
+        finalOutputFile = _generateOutputFile(input, tempDir);
+      }
+
+      await finalOutputFile.parent.create(recursive: true);
+
+      int finalCompressedWidth;
+      int finalCompressedHeight;
+      int finalCompressedSizeBytes;
+
+      if (compressedSizeBytes >= originalSizeBytes && await input.exists()) {
+        await input.copy(finalOutputFile.path);
+        isOriginalCopied = true;
+        finalCompressedWidth = originalWidth;
+        finalCompressedHeight = originalHeight;
+        finalCompressedSizeBytes = originalSizeBytes;
+      } else {
+        await finalOutputFile.writeAsBytes(compressedBytes);
+        final codecCompressed = await ui.instantiateImageCodec(compressedBytes);
+        final frameCompressed = await codecCompressed.getNextFrame();
+        finalCompressedWidth = frameCompressed.image.width;
+        finalCompressedHeight = frameCompressed.image.height;
+        frameCompressed.image.dispose();
+        finalCompressedSizeBytes = compressedSizeBytes;
+      }
+
+      final result = CompressionResult(
+        file: finalOutputFile,
+        originalSizeBytes: originalSizeBytes,
+        compressedSizeBytes: finalCompressedSizeBytes,
+        originalWidth: originalWidth,
+        originalHeight: originalHeight,
+        compressedWidth: finalCompressedWidth,
+        compressedHeight: finalCompressedHeight,
+        isOriginalCopied: isOriginalCopied,
+      );
+
+      return Result.success(result);
+    } catch (e) {
+      if (e is CompressionException) {
+        return Result.failure(e);
+      }
+      if (e is Exception) {
+        return Result.failure(CompressionFailedException(
+          '压缩失败 (Compression failed)',
+          e,
+        ));
+      }
+      return Result.failure(CompressionFailedException(
+        '压缩失败 (Compression failed): ${e.toString()}',
+      ));
     }
   }
 
-  Future<List<Uint8List>> compressBatchFromFiles(List<File> files) async {
-    final List<Future<Uint8List>> futures = [];
-    for (final file in files) {
-      futures.add(compressFromFile(file));
+  Future<Result<BatchCompressionResult>> compressBatchFiles(
+    List<File> inputs, {
+    Directory? outputDir,
+  }) async {
+    try {
+      if (inputs.isEmpty) {
+        return Result.failure(InvalidArgumentException('输入文件列表不能为空 (Input file list cannot be empty)'));
+      }
+      final List<Future<BatchCompressionItem>> futures = [];
+      for (final file in inputs) {
+        futures.add(
+          compressFile(file, outputDir: outputDir).then(
+            (result) => BatchCompressionItem(
+              originalPath: file.path,
+              result: result,
+            ),
+          ),
+        );
+      }
+      final items = await Future.wait(futures);
+      return Result.success(BatchCompressionResult(items));
+    } catch (e) {
+      if (e is CompressionException) {
+        return Result.failure(e);
+      }
+      if (e is Exception) {
+        return Result.failure(CompressionFailedException(
+          '批量压缩失败 (Batch compression failed)',
+          e,
+        ));
+      }
+      return Result.failure(CompressionFailedException(
+        '批量压缩失败 (Batch compression failed): ${e.toString()}',
+      ));
     }
-    return Future.wait(futures);
   }
 
-  Future<List<Uint8List>> compressBatchInternal(
-    List<Uint8List> imageBytesList,
-    List<int> widths,
-    List<int> heights,
-  ) async {
-    final List<Future<Uint8List>> futures = [];
-    for (int i = 0; i < imageBytesList.length; i++) {
-      futures.add(compressInternal(imageBytesList[i], widths[i], heights[i]));
-    }
-    return Future.wait(futures);
-  }
-
-  Future<Uint8List> _imageToRgba(ui.Image image) async {
-    final ByteData? byteData = await image.toByteData(
-      format: ui.ImageByteFormat.rawRgba,
-    );
-    return byteData!.buffer.asUint8List();
-  }
-
-  Future<ui.Image> _resizeImage(
-    ui.Image image,
-    int targetWidth,
-    int targetHeight,
-  ) async {
-    final ui.PictureRecorder recorder = ui.PictureRecorder();
-    final ui.Canvas canvas = ui.Canvas(recorder);
-    canvas.drawImageRect(
-      image,
-      ui.Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-      ui.Rect.fromLTWH(0, 0, targetWidth.toDouble(), targetHeight.toDouble()),
-      ui.Paint(),
-    );
-    final ui.Picture picture = recorder.endRecording();
-    return picture.toImage(targetWidth, targetHeight);
+  File _generateOutputFile(File inputFile, Directory outputDir) {
+    final inputName = path.basenameWithoutExtension(inputFile.path);
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return File(path.join(outputDir.path, '${inputName}_$timestamp.jpg'));
   }
 }
