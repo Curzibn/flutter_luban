@@ -1,3 +1,6 @@
+## 2.0.2
+- 修复 iOS 端安装时找不到 TurboJPEG 依赖导致 pod install 失败的问题（#2）：改为随插件直接内嵌 TurboJPEG.xcframework，不再依赖独立本地 pod
+
 ## 2.0.1
 - 发布优化重构的核心架构
 
