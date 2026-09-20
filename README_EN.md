@@ -30,6 +30,8 @@ Since this behavior is inferred from observation, the results may not match WeCh
 
 This library is the **Flutter version** of `Luban`, using **TurboJPEG** for high-performance image compression, providing a simple API and compression results close to WeChat Moments.
 
+> If you need **online or command line** image compression (PNG / JPEG / GIF / WebP / AVIF, free, one shared quota across web / API / CLI), take a look at **LubanPNG** from the same family: https://lubanpng.wizthink.cn/en/?utm_source=luban2&utm_medium=readme-flutter-en&utm_campaign=launch
+
 ## 📊 Effects & Comparison
 
 | Image Type | Original | Luban | WeChat |
