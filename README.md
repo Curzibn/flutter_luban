@@ -30,6 +30,8 @@ Luban Flutter —— 高效简洁的 Flutter 图片压缩插件，像素级还�
 
 本库是 `Luban` 的 **Flutter 版本**，使用 **TurboJPEG** 进行高性能图片压缩，提供简洁易用的 API 和接近微信朋友圈的压缩效果。
 
+> 如果你需要**在线或命令行**的图片压缩（PNG / JPEG / GIF / WebP / AVIF，免费，网页 / API / CLI 共用一份额度），可以看看同一系列的 **LubanPNG（鲁班刨）**：https://lubanpng.wizthink.cn/?utm_source=luban2&utm_medium=readme-flutter&utm_campaign=launch
+
 ## 📊 效果与对比
 
 | 图片类型 | 原图（分辨率, 大小） | Luban（分辨率, 大小） | Wechat（分辨率, 大小） |
