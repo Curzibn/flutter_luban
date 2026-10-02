@@ -106,7 +106,7 @@ class CompressionCalculator {
       estimatedSize = math.max(estimatedSize, 250);
     }
 
-    final bool isLongImage = ratio <= 0.5;
+    final bool isLongImage = ratio <= 0.4;
     final int? targetSizeKb = isLongImage ? estimatedSize : null;
 
     return CompressionTarget(

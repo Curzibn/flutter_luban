@@ -80,6 +80,34 @@ void main() {
         expect(target.isLongImage, isFalse);
         expect(target.targetSizeKb, isNull);
       });
+
+      test('全面屏拍照 9:20 (1080×2400) 非长图', () {
+        final target = calculator.calculateTarget(1080, 2400);
+
+        expect(target.isLongImage, isFalse);
+        expect(target.targetSizeKb, isNull);
+      });
+
+      test('全面屏拍照 18:9 (1080×2160) 非长图', () {
+        final target = calculator.calculateTarget(1080, 2160);
+
+        expect(target.isLongImage, isFalse);
+        expect(target.targetSizeKb, isNull);
+      });
+
+      test('宽高比 0.4 边界 (1000×2500) 仍为长图', () {
+        final target = calculator.calculateTarget(1000, 2500);
+
+        expect(target.isLongImage, isTrue);
+        expect(target.targetSizeKb, isNotNull);
+      });
+
+      test('长截图宽高比 0.25 (1000×4000) 仍为长图', () {
+        final target = calculator.calculateTarget(1000, 4000);
+
+        expect(target.isLongImage, isTrue);
+        expect(target.targetSizeKb, isNotNull);
+      });
     });
 
     group('全景图压缩', () {
