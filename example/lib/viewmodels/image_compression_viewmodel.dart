@@ -72,8 +72,12 @@ class ImageCompressionViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final tempFile = await _fileService.createTempFile(_originalImageData!.bytes);
-      final Uint8List compressedBytes = await _compressionService.compressImage(tempFile);
+      final tempFile = await _fileService.createTempFile(
+        _originalImageData!.bytes,
+      );
+      final Uint8List compressedBytes = await _compressionService.compressImage(
+        tempFile,
+      );
       await tempFile.delete();
 
       final codec = await ui.instantiateImageCodec(compressedBytes);
@@ -108,16 +112,17 @@ class ImageCompressionViewModel extends ChangeNotifier {
 
       final FileService fileService = FileService();
       List<File> imageFiles = await fileService.getInputImageFiles();
-      
+
       if (imageFiles.isEmpty) {
         await _fileService.copyAssetsToStorage();
         imageFiles = await fileService.getInputImageFiles();
       }
-      
+
       if (imageFiles.isEmpty) {
         final inputDirPath = await fileService.getInputImagesDirectoryPath();
         _isBatchCompressing = false;
-        _errorMessage = '输入目录中没有找到图片文件: $inputDirPath\n请确保 assets/test_images/ 目录中有图片文件，并重新运行应用';
+        _errorMessage =
+            '输入目录中没有找到图片文件: $inputDirPath\n请确保 assets/test_images/ 目录中有图片文件，并重新运行应用';
         notifyListeners();
         return;
       }
@@ -128,7 +133,8 @@ class ImageCompressionViewModel extends ChangeNotifier {
       _batchProgress = 0;
       notifyListeners();
 
-      final BatchCompressResult result = await _compressionService.compressBatchFromDirectory(imageFiles);
+      final BatchCompressResult result = await _compressionService
+          .compressBatchFromDirectory(imageFiles);
 
       _isBatchCompressing = false;
       _batchResult = result;
@@ -146,4 +152,3 @@ class ImageCompressionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
-

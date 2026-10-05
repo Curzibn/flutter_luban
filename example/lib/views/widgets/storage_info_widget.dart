@@ -24,7 +24,8 @@ class _StorageInfoWidgetState extends State<StorageInfoWidget> {
   Future<void> _loadPaths() async {
     try {
       _inputImagesPath = await _fileService.getInputImagesDirectoryPath();
-      _outputCompressedPath = await _fileService.getOutputCompressedDirectoryPath();
+      _outputCompressedPath = await _fileService
+          .getOutputCompressedDirectoryPath();
       setState(() {
         _isLoading = false;
       });
@@ -135,11 +136,7 @@ class _StorageInfoWidgetState extends State<StorageInfoWidget> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Icon(
-                Icons.copy,
-                size: 16,
-                color: Colors.orange.shade700,
-              ),
+              Icon(Icons.copy, size: 16, color: Colors.orange.shade700),
             ],
           ),
         ),
@@ -147,4 +144,3 @@ class _StorageInfoWidgetState extends State<StorageInfoWidget> {
     );
   }
 }
-

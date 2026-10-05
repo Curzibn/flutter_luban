@@ -14,15 +14,18 @@ void main() {
     final tempDir = await getTemporaryDirectory();
     final testFile = File('${tempDir.path}/test_image.png');
     await testFile.writeAsBytes(testImageBytes);
-    
+
     final result = await Luban.compress(testFile);
-    
+
     expect(result.isSuccess, true);
     final compressionResult = result.value;
     expect(compressionResult.compressedSizeBytes, greaterThan(0));
-    expect(compressionResult.compressedSizeBytes, lessThanOrEqualTo(testImageBytes.length));
+    expect(
+      compressionResult.compressedSizeBytes,
+      lessThanOrEqualTo(testImageBytes.length),
+    );
     expect(await compressionResult.file.exists(), true);
-    
+
     await testFile.delete();
     await compressionResult.file.delete();
   });
@@ -35,23 +38,23 @@ void main() {
     final testFile2 = File('${tempDir.path}/test_image2.png');
     await testFile1.writeAsBytes(testImageBytes1);
     await testFile2.writeAsBytes(testImageBytes2);
-    
+
     final batchResult = await Luban.compressBatch([testFile1, testFile2]);
-    
+
     expect(batchResult.isSuccess, true);
     final batchCompressionResult = batchResult.value;
     expect(batchCompressionResult.total, equals(2));
     expect(batchCompressionResult.successCount, equals(2));
     expect(batchCompressionResult.failureCount, equals(0));
     expect(batchCompressionResult.successfulResults.length, equals(2));
-    
+
     for (final item in batchCompressionResult.items) {
       expect(item.isSuccess, true);
       final compressionResult = item.result.value;
       expect(await compressionResult.file.exists(), true);
       await compressionResult.file.delete();
     }
-    
+
     await testFile1.delete();
     await testFile2.delete();
   });

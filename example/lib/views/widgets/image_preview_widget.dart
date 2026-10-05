@@ -32,10 +32,7 @@ class ImagePreviewWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Center(
-          child: Text(
-            '暂无图片',
-            style: TextStyle(color: Colors.grey),
-          ),
+          child: Text('暂无图片', style: TextStyle(color: Colors.grey)),
         ),
       );
     }
@@ -45,10 +42,7 @@ class ImagePreviewWidget extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -112,7 +106,10 @@ class ImagePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double scale = (size.width / image.width).clamp(0.0, size.height / image.height);
+    final double scale = (size.width / image.width).clamp(
+      0.0,
+      size.height / image.height,
+    );
     final double scaledWidth = image.width * scale;
     final double scaledHeight = image.height * scale;
     final double offsetX = (size.width - scaledWidth) / 2;
@@ -129,4 +126,3 @@ class ImagePainter extends CustomPainter {
   @override
   bool shouldRepaint(ImagePainter oldDelegate) => oldDelegate.image != image;
 }
-

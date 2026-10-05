@@ -42,27 +42,17 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(
-          widget.title,
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(widget.title, style: const TextStyle(color: Colors.white)),
       ),
       body: _imageProvider == null
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            )
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : PhotoView(
               imageProvider: _imageProvider,
               minScale: PhotoViewComputedScale.contained,
               maxScale: PhotoViewComputedScale.covered * 3,
-              heroAttributes: PhotoViewHeroAttributes(
-                tag: widget.title,
-              ),
-              backgroundDecoration: const BoxDecoration(
-                color: Colors.black,
-              ),
+              heroAttributes: PhotoViewHeroAttributes(tag: widget.title),
+              backgroundDecoration: const BoxDecoration(color: Colors.black),
             ),
     );
   }
 }
-

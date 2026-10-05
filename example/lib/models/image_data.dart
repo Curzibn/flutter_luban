@@ -14,4 +14,3 @@ class ImageData {
     required this.height,
   });
 }
-

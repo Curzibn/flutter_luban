@@ -28,7 +28,10 @@ class Result<T> {
     return error;
   }
 
-  R fold<R>(R Function(Exception error) onFailure, R Function(T value) onSuccess) {
+  R fold<R>(
+    R Function(Exception error) onFailure,
+    R Function(T value) onSuccess,
+  ) {
     final error = _error;
     if (error != null) {
       return onFailure(error);

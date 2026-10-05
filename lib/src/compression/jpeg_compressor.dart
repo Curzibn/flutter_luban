@@ -25,12 +25,7 @@ class JpegCompressor implements Compressor {
     }
 
     if (targetSizeKb == null) {
-      return _turboJpeg.compress(
-        rgbaData,
-        width,
-        height,
-        quality: 60,
-      );
+      return _turboJpeg.compress(rgbaData, width, height, quality: 60);
     }
 
     const int low = 5;
@@ -71,12 +66,7 @@ class JpegCompressor implements Compressor {
       }
     }
 
-    return bestData ?? _turboJpeg.compress(
-      rgbaData,
-      width,
-      height,
-      quality: 5,
-    );
+    return bestData ?? _turboJpeg.compress(rgbaData, width, height, quality: 5);
   }
 
   void dispose() {

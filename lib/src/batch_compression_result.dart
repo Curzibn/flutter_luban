@@ -5,10 +5,7 @@ class BatchCompressionItem {
   final String originalPath;
   final Result<CompressionResult> result;
 
-  BatchCompressionItem({
-    required this.originalPath,
-    required this.result,
-  });
+  BatchCompressionItem({required this.originalPath, required this.result});
 
   bool get isSuccess => result.isSuccess;
   bool get isFailure => result.isFailure;

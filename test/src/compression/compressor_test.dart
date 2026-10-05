@@ -25,7 +25,7 @@ class MockCompressor implements Compressor {
 
     final int pixelCount = width * height;
     final int expectedDataLength = pixelCount * 4;
-    
+
     if (rgbaData.length != expectedDataLength) {
       throw ArgumentError(
         'Expected RGBA data length $expectedDataLength, got ${rgbaData.length}',
@@ -48,7 +48,11 @@ class MockCompressor implements Compressor {
     return Uint8List(baseSize.clamp(100, 1000000));
   }
 
-  Uint8List _createMockJpegWithTargetSize(int width, int height, int targetSizeKb) {
+  Uint8List _createMockJpegWithTargetSize(
+    int width,
+    int height,
+    int targetSizeKb,
+  ) {
     final int targetSizeBytes = targetSizeKb * 1024;
     final int baseSize = (width * height * 0.1).round();
     final int size = (baseSize < targetSizeBytes) ? baseSize : targetSizeBytes;

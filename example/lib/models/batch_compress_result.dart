@@ -13,4 +13,3 @@ class BatchCompressResult {
     this.directoryPath,
   });
 }
-

@@ -21,9 +21,8 @@ class CompressionResult {
     this.isOriginalCopied = false,
   });
 
-  double get compressionRatio => originalSizeBytes > 0
-      ? compressedSizeBytes / originalSizeBytes
-      : 1.0;
+  double get compressionRatio =>
+      originalSizeBytes > 0 ? compressedSizeBytes / originalSizeBytes : 1.0;
 
   int get sizeReductionBytes => originalSizeBytes - compressedSizeBytes;
 

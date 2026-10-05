@@ -8,9 +8,7 @@ class ImageService {
   final ImagePicker _picker = ImagePicker();
 
   Future<ImageData?> pickImage() async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) return null;
 
@@ -40,12 +38,14 @@ class ImageService {
       final frame = await codec.getNextFrame();
       final ui.Image imageData = frame.image;
 
-      imageDataList.add(ImageData(
-        bytes: imageBytes,
-        image: imageData,
-        width: imageData.width,
-        height: imageData.height,
-      ));
+      imageDataList.add(
+        ImageData(
+          bytes: imageBytes,
+          image: imageData,
+          width: imageData.width,
+          height: imageData.height,
+        ),
+      );
     }
 
     return imageDataList;
@@ -58,7 +58,11 @@ class ImageService {
     return byteData!.buffer.asUint8List();
   }
 
-  Future<ui.Image> resizeImage(ui.Image image, int targetWidth, int targetHeight) async {
+  Future<ui.Image> resizeImage(
+    ui.Image image,
+    int targetWidth,
+    int targetHeight,
+  ) async {
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder);
     canvas.drawImageRect(
@@ -78,4 +82,3 @@ class ImageService {
     return byteData!.buffer.asUint8List();
   }
 }
-

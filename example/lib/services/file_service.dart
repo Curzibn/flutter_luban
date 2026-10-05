@@ -22,11 +22,11 @@ class FileService {
     final Directory inputDir = Directory(
       path.join(baseDir.path, inputImagesFolder),
     );
-    
+
     if (!await inputDir.exists()) {
       await inputDir.create(recursive: true);
     }
-    
+
     return inputDir;
   }
 
@@ -35,11 +35,11 @@ class FileService {
     final Directory outputDir = Directory(
       path.join(baseDir.path, outputCompressedFolder),
     );
-    
+
     if (!await outputDir.exists()) {
       await outputDir.create(recursive: true);
     }
-    
+
     return outputDir;
   }
 
@@ -48,11 +48,11 @@ class FileService {
     final Directory compressedDir = Directory(
       path.join(appDocDir.path, compressedImagesFolder),
     );
-    
+
     if (!await compressedDir.exists()) {
       await compressedDir.create(recursive: true);
     }
-    
+
     return compressedDir;
   }
 
@@ -61,17 +61,14 @@ class FileService {
     if (!await inputDir.exists()) {
       return [];
     }
-    
+
     final List<FileSystemEntity> entities = inputDir.listSync();
-    return entities
-        .whereType<File>()
-        .where((file) {
-          final fileName = file.path.toLowerCase();
-          return fileName.endsWith('.jpg') ||
-                 fileName.endsWith('.jpeg') ||
-                 fileName.endsWith('.png');
-        })
-        .toList();
+    return entities.whereType<File>().where((file) {
+      final fileName = file.path.toLowerCase();
+      return fileName.endsWith('.jpg') ||
+          fileName.endsWith('.jpeg') ||
+          fileName.endsWith('.png');
+    }).toList();
   }
 
   Future<String> saveCompressedImage(
@@ -113,11 +110,13 @@ class FileService {
     if (!await compressedDir.exists()) {
       return [];
     }
-    
+
     final List<FileSystemEntity> entities = compressedDir.listSync();
     return entities
         .whereType<File>()
-        .where((file) => file.path.endsWith('.jpg') || file.path.endsWith('.jpeg'))
+        .where(
+          (file) => file.path.endsWith('.jpg') || file.path.endsWith('.jpeg'),
+        )
         .toList();
   }
 
@@ -142,34 +141,44 @@ class FileService {
     try {
       final Directory inputDir = await getInputImagesDirectory();
       final List<String> assetFiles = await _getAssetFiles();
-      
+
       if (assetFiles.isEmpty) {
         debugPrint('警告: 未找到 assets 中的图片文件');
         return;
       }
 
-      final Set<String> imageExtensions = {'.jpg', '.jpeg', '.png', '.webp', '.bmp'};
+      final Set<String> imageExtensions = {
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.webp',
+        '.bmp',
+      };
       int copiedCount = 0;
       int skippedCount = 0;
       int errorCount = 0;
 
       for (final fileName in assetFiles) {
         final lowerFileName = fileName.toLowerCase();
-        
-        final bool isImageFile = imageExtensions.any((ext) => lowerFileName.endsWith(ext));
+
+        final bool isImageFile = imageExtensions.any(
+          (ext) => lowerFileName.endsWith(ext),
+        );
         if (!isImageFile) {
           continue;
         }
 
         final File targetFile = File(path.join(inputDir.path, fileName));
-        
+
         if (await targetFile.exists()) {
           skippedCount++;
           continue;
         }
 
         try {
-          final ByteData data = await rootBundle.load('assets/test_images/$fileName');
+          final ByteData data = await rootBundle.load(
+            'assets/test_images/$fileName',
+          );
           final Uint8List bytes = data.buffer.asUint8List();
           await targetFile.writeAsBytes(bytes);
           copiedCount++;
@@ -179,8 +188,10 @@ class FileService {
           continue;
         }
       }
-      
-      debugPrint('Assets 复制完成: 复制 $copiedCount 个文件, 跳过 $skippedCount 个文件, 错误 $errorCount 个文件');
+
+      debugPrint(
+        'Assets 复制完成: 复制 $copiedCount 个文件, 跳过 $skippedCount 个文件, 错误 $errorCount 个文件',
+      );
       debugPrint('输入目录路径: ${inputDir.path}');
     } catch (e) {
       debugPrint('复制 assets 到存储失败: $e');
@@ -190,14 +201,52 @@ class FileService {
   Future<List<String>> _getAssetFiles() async {
     final List<String> assetFiles = [];
     final List<String> possibleFiles = [
-      'A.jpg', 'B.jpg', 'C.jpg', 'D.jpg', 'E.jpg', 'F.jpg', 'G.jpg', 'H.jpg',
-      'a.jpg', 'b.jpg', 'c.jpg', 'd.jpg', 'e.jpg', 'f.jpg', 'g.jpg', 'h.jpg',
-      '1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg', '9.jpg',
-      'test1.jpg', 'test2.jpg', 'test3.jpg', 'image1.jpg', 'image2.jpg',
-      'A.jpeg', 'B.jpeg', 'C.jpeg', 'D.jpeg', 'E.jpeg', 'F.jpeg', 'G.jpeg',
-      'A.png', 'B.png', 'C.png', 'D.png', 'E.png', 'F.png', 'G.png',
+      'A.jpg',
+      'B.jpg',
+      'C.jpg',
+      'D.jpg',
+      'E.jpg',
+      'F.jpg',
+      'G.jpg',
+      'H.jpg',
+      'a.jpg',
+      'b.jpg',
+      'c.jpg',
+      'd.jpg',
+      'e.jpg',
+      'f.jpg',
+      'g.jpg',
+      'h.jpg',
+      '1.jpg',
+      '2.jpg',
+      '3.jpg',
+      '4.jpg',
+      '5.jpg',
+      '6.jpg',
+      '7.jpg',
+      '8.jpg',
+      '9.jpg',
+      'test1.jpg',
+      'test2.jpg',
+      'test3.jpg',
+      'image1.jpg',
+      'image2.jpg',
+      'A.jpeg',
+      'B.jpeg',
+      'C.jpeg',
+      'D.jpeg',
+      'E.jpeg',
+      'F.jpeg',
+      'G.jpeg',
+      'A.png',
+      'B.png',
+      'C.png',
+      'D.png',
+      'E.png',
+      'F.png',
+      'G.png',
     ];
-    
+
     for (final fileName in possibleFiles) {
       try {
         await rootBundle.load('assets/test_images/$fileName');
@@ -207,7 +256,7 @@ class FileService {
         continue;
       }
     }
-    
+
     debugPrint('总共找到 ${assetFiles.length} 个 assets 文件: $assetFiles');
     return assetFiles;
   }
@@ -220,4 +269,3 @@ class FileService {
     return tempFile;
   }
 }
-

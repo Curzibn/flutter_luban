@@ -62,9 +62,7 @@ class BatchCompressWidget extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: total > 0 ? progress / total : 0,
-            ),
+            LinearProgressIndicator(value: total > 0 ? progress / total : 0),
           ] else ...[
             SizedBox(
               width: double.infinity,
@@ -87,7 +85,8 @@ class BatchCompressWidget extends StatelessWidget {
                 color: result!.failed == 0 ? Colors.green : Colors.orange,
               ),
             ),
-            if (result!.savedPaths.isNotEmpty && result!.directoryPath != null) ...[
+            if (result!.savedPaths.isNotEmpty &&
+                result!.directoryPath != null) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -101,7 +100,11 @@ class BatchCompressWidget extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.folder, size: 18, color: Colors.green.shade700),
+                        Icon(
+                          Icons.folder,
+                          size: 18,
+                          color: Colors.green.shade700,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           '保存位置',
@@ -115,7 +118,8 @@ class BatchCompressWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: () => _copyToClipboard(context, result!.directoryPath!),
+                      onTap: () =>
+                          _copyToClipboard(context, result!.directoryPath!),
                       child: Row(
                         children: [
                           Expanded(
@@ -156,5 +160,3 @@ class BatchCompressWidget extends StatelessWidget {
     );
   }
 }
-
-

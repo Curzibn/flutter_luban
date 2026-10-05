@@ -16,7 +16,11 @@ class ImageData {
 }
 
 abstract class ImageLoader {
-  Future<ImageData> loadFromBytes(Uint8List imageBytes, int targetWidth, int targetHeight);
+  Future<ImageData> loadFromBytes(
+    Uint8List imageBytes,
+    int targetWidth,
+    int targetHeight,
+  );
 }
 
 class FlutterImageLoader implements ImageLoader {
@@ -27,7 +31,12 @@ class FlutterImageLoader implements ImageLoader {
     int targetHeight,
   ) async {
     final double fileSizeKb = imageBytes.length / 1024.0;
-    return _loadFromBytesInternal(imageBytes, targetWidth, targetHeight, fileSizeKb);
+    return _loadFromBytesInternal(
+      imageBytes,
+      targetWidth,
+      targetHeight,
+      fileSizeKb,
+    );
   }
 
   Future<ImageData> _loadFromBytesInternal(

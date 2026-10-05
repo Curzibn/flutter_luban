@@ -18,10 +18,7 @@ class CompressionInfoWidget extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
           ),
           Text(
             value,
@@ -69,4 +66,3 @@ class CompressionInfoWidget extends StatelessWidget {
     );
   }
 }
-

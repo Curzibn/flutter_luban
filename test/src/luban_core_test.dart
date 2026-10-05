@@ -21,7 +21,7 @@ void main() {
       test('标准图片应该计算正确的目标尺寸', () {
         final calculator = CompressionCalculator();
         final target = calculator.calculateTarget(3024, 4032);
-        
+
         expect(target.width, greaterThan(0));
         expect(target.height, greaterThan(0));
         expect(target.width, lessThanOrEqualTo(3024));
@@ -31,7 +31,7 @@ void main() {
       test('长图应该设置目标大小', () {
         final calculator = CompressionCalculator();
         final target = calculator.calculateTarget(1242, 22080);
-        
+
         expect(target.isLongImage, isTrue);
         expect(target.targetSizeKb, isNotNull);
       });

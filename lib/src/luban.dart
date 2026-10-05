@@ -40,11 +40,9 @@ class Luban {
   final ImageLoader _imageLoader;
   final CompressionCalculator _calculator;
 
-  Luban({
-    ImageLoader? imageLoader,
-    CompressionCalculator? calculator,
-  })  : _imageLoader = imageLoader ?? FlutterImageLoader(),
-        _calculator = calculator ?? CompressionCalculator();
+  Luban({ImageLoader? imageLoader, CompressionCalculator? calculator})
+    : _imageLoader = imageLoader ?? FlutterImageLoader(),
+      _calculator = calculator ?? CompressionCalculator();
 
   static final Luban _defaultInstance = Luban();
 
@@ -54,9 +52,17 @@ class Luban {
     File? outputFile,
   }) async {
     if (outputDir != null && outputFile != null) {
-      return Result.failure(InvalidArgumentException('outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)'));
+      return Result.failure(
+        InvalidArgumentException(
+          'outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)',
+        ),
+      );
     }
-    return _defaultInstance.compressFile(input, outputDir: outputDir, outputFile: outputFile);
+    return _defaultInstance.compressFile(
+      input,
+      outputDir: outputDir,
+      outputFile: outputFile,
+    );
   }
 
   static Future<Result<CompressionResult>> compressPath(
@@ -65,9 +71,17 @@ class Luban {
     File? outputFile,
   }) async {
     if (outputDir != null && outputFile != null) {
-      return Result.failure(InvalidArgumentException('outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)'));
+      return Result.failure(
+        InvalidArgumentException(
+          'outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)',
+        ),
+      );
     }
-    return compress(File(inputPath), outputDir: outputDir, outputFile: outputFile);
+    return compress(
+      File(inputPath),
+      outputDir: outputDir,
+      outputFile: outputFile,
+    );
   }
 
   static Future<Result<CompressionResult>> compressToFile({
@@ -110,16 +124,13 @@ class Luban {
     final int? targetSizeKb = target.targetSizeKb;
     final int? fixedQuality = target.isLongImage ? null : 60;
 
-    final Uint8List compressedBytes = await compute(
-      _compressInIsolate,
-      {
-        'rgbaData': imageData.rgbaData,
-        'width': imageData.width,
-        'height': imageData.height,
-        'targetSizeKb': targetSizeKb,
-        'fixedQuality': fixedQuality,
-      },
-    );
+    final Uint8List compressedBytes = await compute(_compressInIsolate, {
+      'rgbaData': imageData.rgbaData,
+      'width': imageData.width,
+      'height': imageData.height,
+      'targetSizeKb': targetSizeKb,
+      'fixedQuality': fixedQuality,
+    });
 
     return compressedBytes;
   }
@@ -130,7 +141,11 @@ class Luban {
     File? outputFile,
   }) async {
     if (outputDir != null && outputFile != null) {
-      return Result.failure(InvalidArgumentException('outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)'));
+      return Result.failure(
+        InvalidArgumentException(
+          'outputDir 和 outputFile 不能同时提供 (outputDir and outputFile cannot be provided at the same time)',
+        ),
+      );
     }
     try {
       if (!await input.exists()) {
@@ -204,14 +219,15 @@ class Luban {
         return Result.failure(e);
       }
       if (e is Exception) {
-        return Result.failure(CompressionFailedException(
-          '压缩失败 (Compression failed)',
-          e,
-        ));
+        return Result.failure(
+          CompressionFailedException('压缩失败 (Compression failed)', e),
+        );
       }
-      return Result.failure(CompressionFailedException(
-        '压缩失败 (Compression failed): ${e.toString()}',
-      ));
+      return Result.failure(
+        CompressionFailedException(
+          '压缩失败 (Compression failed): ${e.toString()}',
+        ),
+      );
     }
   }
 
@@ -221,16 +237,18 @@ class Luban {
   }) async {
     try {
       if (inputs.isEmpty) {
-        return Result.failure(InvalidArgumentException('输入文件列表不能为空 (Input file list cannot be empty)'));
+        return Result.failure(
+          InvalidArgumentException(
+            '输入文件列表不能为空 (Input file list cannot be empty)',
+          ),
+        );
       }
       final List<Future<BatchCompressionItem>> futures = [];
       for (final file in inputs) {
         futures.add(
           compressFile(file, outputDir: outputDir).then(
-            (result) => BatchCompressionItem(
-              originalPath: file.path,
-              result: result,
-            ),
+            (result) =>
+                BatchCompressionItem(originalPath: file.path, result: result),
           ),
         );
       }
@@ -241,14 +259,15 @@ class Luban {
         return Result.failure(e);
       }
       if (e is Exception) {
-        return Result.failure(CompressionFailedException(
-          '批量压缩失败 (Batch compression failed)',
-          e,
-        ));
+        return Result.failure(
+          CompressionFailedException('批量压缩失败 (Batch compression failed)', e),
+        );
       }
-      return Result.failure(CompressionFailedException(
-        '批量压缩失败 (Batch compression failed): ${e.toString()}',
-      ));
+      return Result.failure(
+        CompressionFailedException(
+          '批量压缩失败 (Batch compression failed): ${e.toString()}',
+        ),
+      );
     }
   }
 

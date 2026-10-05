@@ -22,10 +22,8 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
   void _showFullScreenImage(BuildContext context, imageData, String title) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => FullScreenImageViewer(
-          image: imageData.image,
-          title: title,
-        ),
+        builder: (context) =>
+            FullScreenImageViewer(image: imageData.image, title: title),
       ),
     );
   }
@@ -41,9 +39,9 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
         builder: (context, viewModel, child) {
           if (viewModel.errorMessage != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(viewModel.errorMessage!)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
               viewModel.clearError();
             });
           }
@@ -63,7 +61,7 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
             });
           }
 
-            return SingleChildScrollView(
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,7 +86,9 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: viewModel.isCompressing ? null : viewModel.compressImage,
+                  onPressed: viewModel.isCompressing
+                      ? null
+                      : viewModel.compressImage,
                   icon: viewModel.isCompressing
                       ? const SizedBox(
                           width: 16,
@@ -96,7 +96,9 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.compress),
-                  label: Text(viewModel.isCompressing ? '压缩中...' : '使用Luban算法压缩'),
+                  label: Text(
+                    viewModel.isCompressing ? '压缩中...' : '使用Luban算法压缩',
+                  ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -109,17 +111,18 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
                   ),
                 ],
                 const SizedBox(height: 24),
-                if (viewModel.originalImageData != null || viewModel.compressedImageData != null) ...[
+                if (viewModel.originalImageData != null ||
+                    viewModel.compressedImageData != null) ...[
                   ImagePreviewWidget(
                     imageData: viewModel.originalImageData,
                     title: '原图',
                     bytes: viewModel.originalImageData?.bytes.length,
                     onTap: viewModel.originalImageData != null
                         ? () => _showFullScreenImage(
-                              context,
-                              viewModel.originalImageData!,
-                              '原图',
-                            )
+                            context,
+                            viewModel.originalImageData!,
+                            '原图',
+                          )
                         : null,
                   ),
                   const SizedBox(height: 24),
@@ -129,10 +132,10 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
                     bytes: viewModel.compressedImageBytes?.length,
                     onTap: viewModel.compressedImageData != null
                         ? () => _showFullScreenImage(
-                              context,
-                              viewModel.compressedImageData!,
-                              '压缩后',
-                            )
+                            context,
+                            viewModel.compressedImageData!,
+                            '压缩后',
+                          )
                         : null,
                   ),
                   if (viewModel.originalImageData != null &&
@@ -152,4 +155,3 @@ class _ImageCompressionPageState extends State<ImageCompressionPage> {
     );
   }
 }
-

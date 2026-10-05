@@ -16,41 +16,28 @@ class CompressionComparisonWidget extends StatelessWidget {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
   }
 
-  Widget _buildComparisonRow(
-    String label,
-    String original,
-    String compressed,
-  ) {
+  Widget _buildComparisonRow(String label, String original, String compressed) {
     final double ratio = (1 - compressedBytes / originalBytes) * 100;
     final Color color = ratio > 50
         ? Colors.green
         : ratio > 20
-            ? Colors.blue
-            : Colors.orange;
+        ? Colors.blue
+        : Colors.orange;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
         Row(
           children: [
-            Text(
-              original,
-              style: const TextStyle(color: Colors.grey),
-            ),
+            Text(original, style: const TextStyle(color: Colors.grey)),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),
               child: Icon(Icons.arrow_forward, size: 16),
             ),
             Text(
               compressed,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -71,10 +58,7 @@ class CompressionComparisonWidget extends StatelessWidget {
         children: [
           const Text(
             '压缩对比',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           _buildComparisonRow(
@@ -99,4 +83,3 @@ class CompressionComparisonWidget extends StatelessWidget {
     );
   }
 }
-

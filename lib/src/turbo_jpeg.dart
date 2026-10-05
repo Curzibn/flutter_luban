@@ -10,12 +10,12 @@ class TurboJpeg {
   late LibJpegTurboBindings _bindings;
   late ffi.Pointer<ffi.Void> _handle;
 
-  static final Finalizer<ffi.Pointer<ffi.Void>> _finalizer = Finalizer(
-    (handle) {
-      final bindings = LibJpegTurboBindings(turboJpegLib);
-      bindings.tjDestroy(handle);
-    },
-  );
+  static final Finalizer<ffi.Pointer<ffi.Void>> _finalizer = Finalizer((
+    handle,
+  ) {
+    final bindings = LibJpegTurboBindings(turboJpegLib);
+    bindings.tjDestroy(handle);
+  });
 
   bool _isInitialized = false;
 
@@ -93,11 +93,12 @@ class TurboJpeg {
       }
 
       final int compressedSize = jpegSizePtr.value.toInt();
-      final ffi.Pointer<ffi.Uint8> resultBuf =
-          jpegBufPtr.value.cast<ffi.Uint8>();
+      final ffi.Pointer<ffi.Uint8> resultBuf = jpegBufPtr.value
+          .cast<ffi.Uint8>();
 
-      final Uint8List dartResult =
-          Uint8List.fromList(resultBuf.asTypedList(compressedSize));
+      final Uint8List dartResult = Uint8List.fromList(
+        resultBuf.asTypedList(compressedSize),
+      );
 
       _bindings.tjFree(resultBuf.cast<ffi.UnsignedChar>());
 

@@ -9,7 +9,7 @@ class CompressionService {
 
   Future<Uint8List> compressImage(File file) async {
     final result = await Luban.compress(file);
-    
+
     if (result.isSuccess) {
       final compressionResult = result.value;
       return await compressionResult.file.readAsBytes();
@@ -22,7 +22,8 @@ class CompressionService {
     List<File> imageFiles, {
     bool saveToFile = true,
   }) async {
-    final Directory outputDir = await _fileService.getOutputCompressedDirectory();
+    final Directory outputDir = await _fileService
+        .getOutputCompressedDirectory();
     final result = await Luban.compressBatch(imageFiles, outputDir: outputDir);
 
     if (result.isFailure) {
@@ -59,7 +60,8 @@ class CompressionService {
   Future<BatchCompressResult> compressBatchFromDirectory(
     List<File> imageFiles,
   ) async {
-    final Directory outputDir = await _fileService.getOutputCompressedDirectory();
+    final Directory outputDir = await _fileService
+        .getOutputCompressedDirectory();
     final result = await Luban.compressBatch(imageFiles, outputDir: outputDir);
 
     if (result.isFailure) {
@@ -75,7 +77,8 @@ class CompressionService {
       }
     }
 
-    final String outputPath = await _fileService.getOutputCompressedDirectoryPath();
+    final String outputPath = await _fileService
+        .getOutputCompressedDirectoryPath();
 
     return BatchCompressResult(
       total: imageFiles.length,
@@ -86,4 +89,3 @@ class CompressionService {
     );
   }
 }
-
